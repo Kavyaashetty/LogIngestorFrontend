@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import "./App.css"; // optional, for styling
+import "./App.css";
 
 const API_BASE = "https://logingestorbackend.azurewebsites.net";
 
@@ -10,7 +10,19 @@ function App() {
   const [prediction, setPrediction] = useState("");
   const [search, setSearch] = useState("");
 
-  // Fetch logs from backend
+  // Add Log states
+  const [showAddLog, setShowAddLog] = useState(false); // toggles expando
+  const [newLog, setNewLog] = useState({
+    level: "INFO",
+    message: "",
+    resourceId: "app-service-1",
+    timestamp: new Date().toISOString(),
+    traceId: "",
+    spanId: "",
+    commit: "",
+    metadata: { env: "production", server: "web-01" },
+  });
+
   const fetchLogs = async () => {
     try {
       const res = await axios.get(`${API_BASE}/logs`, {
@@ -28,6 +40,18 @@ function App() {
     }
   };
 
+  const addLog = async () => {
+    try {
+      await axios.post(`${API_BASE}/ingest`, newLog);
+      alert("Log added successfully!");
+      fetchLogs();
+      setNewLog((prev) => ({ ...prev, message: "" })); // reset only message
+    } catch (err) {
+      console.error("Error adding log:", err);
+      alert("Failed to add log.");
+    }
+  };
+
   useEffect(() => {
     fetchLogs();
   }, [level, prediction, search]);
@@ -35,6 +59,105 @@ function App() {
   return (
     <div style={{ padding: "20px", fontFamily: "Arial" }}>
       <h1>📊 Log Viewer</h1>
+
+      {/* Add Log Expando */}
+      <div
+        style={{
+          marginBottom: "20px",
+          padding: "10px",
+          border: "1px solid #ccc",
+          borderRadius: "8px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            cursor: "pointer",
+            marginBottom: "10px",
+          }}
+          onClick={() => setShowAddLog(!showAddLog)}
+        >
+          <h2>Add Log {showAddLog ? "▲" : "▼"}</h2>
+          <span style={{ fontSize: "20px" }}>{showAddLog ? "-" : "+"}</span>
+        </div>
+
+        {/* Always visible basic fields */}
+        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+          <select
+            value={newLog.level}
+            onChange={(e) =>
+              setNewLog((prev) => ({ ...prev, level: e.target.value }))
+            }
+          >
+            <option value="INFO">INFO</option>
+            <option value="WARN">WARN</option>
+            <option value="ERROR">ERROR</option>
+          </select>
+
+          <input
+            type="text"
+            placeholder="Message"
+            value={newLog.message}
+            onChange={(e) =>
+              setNewLog((prev) => ({ ...prev, message: e.target.value }))
+            }
+          />
+
+          <button onClick={addLog}>Add Log</button>
+        </div>
+
+        {/* Expandable advanced fields */}
+        {showAddLog && (
+          <div
+            style={{
+              marginTop: "10px",
+              display: "flex",
+              gap: "10px",
+              flexWrap: "wrap",
+            }}
+          >
+            <input
+              type="text"
+              placeholder="Trace ID"
+              value={newLog.traceId}
+              onChange={(e) =>
+                setNewLog((prev) => ({ ...prev, traceId: e.target.value }))
+              }
+            />
+
+            <input
+              type="text"
+              placeholder="Span ID"
+              value={newLog.spanId}
+              onChange={(e) =>
+                setNewLog((prev) => ({ ...prev, spanId: e.target.value }))
+              }
+            />
+
+            <input
+              type="text"
+              placeholder="Commit"
+              value={newLog.commit}
+              onChange={(e) =>
+                setNewLog((prev) => ({ ...prev, commit: e.target.value }))
+              }
+            />
+
+            <input
+              type="text"
+              placeholder="Server"
+              value={newLog.metadata.server}
+              onChange={(e) =>
+                setNewLog((prev) => ({
+                  ...prev,
+                  metadata: { ...prev.metadata, server: e.target.value },
+                }))
+              }
+            />
+          </div>
+        )}
+      </div>
 
       {/* Filters */}
       <div style={{ marginBottom: "20px", display: "flex", gap: "10px" }}>
