@@ -11,7 +11,7 @@ function App() {
   const [search, setSearch] = useState("");
 
   // Add Log states
-  const [showAddLog, setShowAddLog] = useState(false); // toggles expando
+  const [showAddLog, setShowAddLog] = useState(false);
   const [newLog, setNewLog] = useState({
     level: "INFO",
     message: "",
@@ -45,7 +45,7 @@ function App() {
       await axios.post(`${API_BASE}/ingest`, newLog);
       alert("Log added successfully!");
       fetchLogs();
-      setNewLog((prev) => ({ ...prev, message: "" })); // reset only message
+      setNewLog((prev) => ({ ...prev, message: "" }));
     } catch (err) {
       console.error("Error adding log:", err);
       alert("Failed to add log.");
@@ -57,170 +57,365 @@ function App() {
   }, [level, prediction, search]);
 
   return (
-    <div style={{ padding: "20px", fontFamily: "Arial" }}>
-      <h1>📊 Log Viewer</h1>
-
-      {/* Add Log Expando */}
+    <div
+      style={{
+        padding: "20px",
+        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+        backgroundColor: "#f5f7fa",
+        minHeight: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "flex-start",
+      }}
+    >
       <div
         style={{
-          marginBottom: "20px",
-          padding: "10px",
-          border: "1px solid #ccc",
-          borderRadius: "8px",
+          width: "100%",
+          maxWidth: "720px",
+          backgroundColor: "#fff",
+          borderRadius: "12px",
+          boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
+          padding: "30px 40px",
+          boxSizing: "border-box",
+          marginTop: "30px",
         }}
       >
+        <h1
+          style={{
+            marginBottom: "24px",
+            fontWeight: "700",
+            fontSize: "2.2rem",
+            color: "#1f2937",
+          }}
+        >
+          📊 Log Viewer
+        </h1>
+
+        {/* Add Log Expando */}
         <div
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            cursor: "pointer",
-            marginBottom: "10px",
+            marginBottom: "24px",
+            padding: "16px",
+            border: "1px solid #e2e8f0",
+            borderRadius: "10px",
           }}
-          onClick={() => setShowAddLog(!showAddLog)}
         >
-          <h2>Add Log {showAddLog ? "▲" : "▼"}</h2>
-          <span style={{ fontSize: "20px" }}>{showAddLog ? "-" : "+"}</span>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              cursor: "pointer",
+              marginBottom: "14px",
+              userSelect: "none",
+              color: "#334155",
+              fontWeight: "600",
+              fontSize: "1.1rem",
+            }}
+            onClick={() => setShowAddLog(!showAddLog)}
+          >
+            <span>Add Log {showAddLog ? "▲" : "▼"}</span>
+            <span
+              style={{
+                fontSize: "22px",
+                fontWeight: "700",
+                lineHeight: "0",
+              }}
+            >
+              {showAddLog ? "−" : "+"}
+            </span>
+          </div>
+
+          {/* Always visible basic fields */}
+          <div
+            style={{
+              display: "flex",
+              gap: "12px",
+              flexWrap: "wrap",
+              alignItems: "center",
+            }}
+          >
+            <select
+              value={newLog.level}
+              onChange={(e) =>
+                setNewLog((prev) => ({ ...prev, level: e.target.value }))
+              }
+              style={{
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #cbd5e1",
+                backgroundColor: "#f8fafc",
+                fontWeight: "600",
+                color: "#334155",
+                minWidth: "120px",
+                cursor: "pointer",
+                transition: "border-color 0.2s ease",
+              }}
+            >
+              <option value="INFO">INFO</option>
+              <option value="WARN">WARN</option>
+              <option value="ERROR">ERROR</option>
+            </select>
+
+            <input
+              type="text"
+              placeholder="Message"
+              value={newLog.message}
+              onChange={(e) =>
+                setNewLog((prev) => ({ ...prev, message: e.target.value }))
+              }
+              style={{
+                flexGrow: 1,
+                padding: "10px 14px",
+                borderRadius: "8px",
+                border: "1px solid #cbd5e1",
+                fontSize: "1rem",
+                color: "#334155",
+                outline: "none",
+                transition: "border-color 0.2s ease",
+              }}
+            />
+
+            <button
+              onClick={addLog}
+              style={{
+                backgroundColor: "#2563eb",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                padding: "10px 25px",
+                fontWeight: "600",
+                cursor: "pointer",
+                transition: "background-color 0.3s ease",
+              }}
+              onMouseEnter={(e) => (e.target.style.backgroundColor = "#1d4ed8")}
+              onMouseLeave={(e) => (e.target.style.backgroundColor = "#2563eb")}
+            >
+              Add Log
+            </button>
+          </div>
+
+          {/* Expandable advanced fields */}
+          {showAddLog && (
+            <div
+              style={{
+                marginTop: "16px",
+                display: "flex",
+                gap: "12px",
+                flexWrap: "wrap",
+              }}
+            >
+              {[
+                { placeholder: "Trace ID", value: newLog.traceId, key: "traceId" },
+                { placeholder: "Span ID", value: newLog.spanId, key: "spanId" },
+                { placeholder: "Commit", value: newLog.commit, key: "commit" },
+              ].map(({ placeholder, value, key }) => (
+                <input
+                  key={key}
+                  type="text"
+                  placeholder={placeholder}
+                  value={value}
+                  onChange={(e) =>
+                    setNewLog((prev) => ({ ...prev, [key]: e.target.value }))
+                  }
+                  style={{
+                    flex: "1 1 160px",
+                    padding: "10px 14px",
+                    borderRadius: "8px",
+                    border: "1px solid #cbd5e1",
+                    fontSize: "1rem",
+                    color: "#334155",
+                    outline: "none",
+                    transition: "border-color 0.2s ease",
+                  }}
+                />
+              ))}
+
+              <input
+                type="text"
+                placeholder="Server"
+                value={newLog.metadata.server}
+                onChange={(e) =>
+                  setNewLog((prev) => ({
+                    ...prev,
+                    metadata: { ...prev.metadata, server: e.target.value },
+                  }))
+                }
+                style={{
+                  flex: "1 1 160px",
+                  padding: "10px 14px",
+                  borderRadius: "8px",
+                  border: "1px solid #cbd5e1",
+                  fontSize: "1rem",
+                  color: "#334155",
+                  outline: "none",
+                  transition: "border-color 0.2s ease",
+                }}
+              />
+            </div>
+          )}
         </div>
 
-        {/* Always visible basic fields */}
-        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+        {/* Filters */}
+        <div
+          style={{
+            marginBottom: "24px",
+            display: "flex",
+            gap: "12px",
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
           <select
-            value={newLog.level}
-            onChange={(e) =>
-              setNewLog((prev) => ({ ...prev, level: e.target.value }))
-            }
+            value={level}
+            onChange={(e) => setLevel(e.target.value)}
+            style={{
+              padding: "10px 14px",
+              borderRadius: "8px",
+              border: "1px solid #cbd5e1",
+              backgroundColor: "#f8fafc",
+              color: "#334155",
+              fontWeight: "600",
+              minWidth: "140px",
+              cursor: "pointer",
+              transition: "border-color 0.2s ease",
+            }}
           >
+            <option value="">All Levels</option>
             <option value="INFO">INFO</option>
             <option value="WARN">WARN</option>
             <option value="ERROR">ERROR</option>
           </select>
 
-          <input
-            type="text"
-            placeholder="Message"
-            value={newLog.message}
-            onChange={(e) =>
-              setNewLog((prev) => ({ ...prev, message: e.target.value }))
-            }
-          />
-
-          <button onClick={addLog}>Add Log</button>
-        </div>
-
-        {/* Expandable advanced fields */}
-        {showAddLog && (
-          <div
+          <select
+            value={prediction}
+            onChange={(e) => setPrediction(e.target.value)}
             style={{
-              marginTop: "10px",
-              display: "flex",
-              gap: "10px",
-              flexWrap: "wrap",
+              padding: "10px 14px",
+              borderRadius: "8px",
+              border: "1px solid #cbd5e1",
+              backgroundColor: "#f8fafc",
+              color: "#334155",
+              fontWeight: "600",
+              minWidth: "140px",
+              cursor: "pointer",
+              transition: "border-color 0.2s ease",
             }}
           >
-            <input
-              type="text"
-              placeholder="Trace ID"
-              value={newLog.traceId}
-              onChange={(e) =>
-                setNewLog((prev) => ({ ...prev, traceId: e.target.value }))
-              }
-            />
+            <option value="">All Predictions</option>
+            <option value="normal">Normal</option>
+            <option value="anomaly">Anomaly</option>
+          </select>
 
-            <input
-              type="text"
-              placeholder="Span ID"
-              value={newLog.spanId}
-              onChange={(e) =>
-                setNewLog((prev) => ({ ...prev, spanId: e.target.value }))
-              }
-            />
+          <input
+            type="text"
+            placeholder="Search message..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{
+              flexGrow: 1,
+              minWidth: "200px",
+              padding: "10px 14px",
+              borderRadius: "8px",
+              border: "1px solid #cbd5e1",
+              fontSize: "1rem",
+              color: "#334155",
+              outline: "none",
+              transition: "border-color 0.2s ease",
+            }}
+          />
 
-            <input
-              type="text"
-              placeholder="Commit"
-              value={newLog.commit}
-              onChange={(e) =>
-                setNewLog((prev) => ({ ...prev, commit: e.target.value }))
-              }
-            />
+          <button
+            onClick={fetchLogs}
+            style={{
+              backgroundColor: "#16a34a",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              padding: "10px 28px",
+              fontWeight: "600",
+              cursor: "pointer",
+              transition: "background-color 0.3s ease",
+            }}
+            onMouseEnter={(e) => (e.target.style.backgroundColor = "#15803d")}
+            onMouseLeave={(e) => (e.target.style.backgroundColor = "#16a34a")}
+          >
+            Refresh
+          </button>
+        </div>
 
-            <input
-              type="text"
-              placeholder="Server"
-              value={newLog.metadata.server}
-              onChange={(e) =>
-                setNewLog((prev) => ({
-                  ...prev,
-                  metadata: { ...prev.metadata, server: e.target.value },
-                }))
-              }
-            />
-          </div>
+        {/* Log Table */}
+        <table
+          border="1"
+          cellPadding="8"
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            fontSize: "0.95rem",
+            color: "#334155",
+          }}
+        >
+          <thead style={{ backgroundColor: "#f1f5f9" }}>
+            <tr>
+              <th style={{ textAlign: "left", padding: "12px 10px" }}>
+                Timestamp
+              </th>
+              <th style={{ textAlign: "left", padding: "12px 10px" }}>Level</th>
+              <th style={{ textAlign: "left", padding: "12px 10px" }}>Message</th>
+              <th style={{ textAlign: "left", padding: "12px 10px" }}>
+                Prediction
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {logs.map((log, idx) => (
+              <tr
+                key={idx}
+                style={{
+                  backgroundColor: idx % 2 === 0 ? "#ffffff" : "#f9fafb",
+                }}
+              >
+                <td style={{ padding: "10px" }}>
+                  {new Date(log.timestamp).toLocaleString()}
+                </td>
+                <td style={{ padding: "10px" }}>{log.level}</td>
+                <td style={{ padding: "10px" }}>{log.message}</td>
+                <td style={{ padding: "10px" }}>
+                  <span
+                    style={{
+                      padding: "5px 12px",
+                      borderRadius: "12px",
+                      color: "white",
+                      backgroundColor:
+                        log.prediction === "anomaly" ? "#dc2626" : "#22c55e",
+                      fontWeight: "600",
+                      fontSize: "0.85rem",
+                      textTransform: "capitalize",
+                      display: "inline-block",
+                      minWidth: "70px",
+                      textAlign: "center",
+                    }}
+                  >
+                    {log.prediction || "N/A"}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {logs.length === 0 && (
+          <p
+            style={{
+              marginTop: "20px",
+              textAlign: "center",
+              color: "#64748b",
+              fontStyle: "italic",
+            }}
+          >
+            No logs found.
+          </p>
         )}
       </div>
-
-      {/* Filters */}
-      <div style={{ marginBottom: "20px", display: "flex", gap: "10px" }}>
-        <select value={level} onChange={(e) => setLevel(e.target.value)}>
-          <option value="">All Levels</option>
-          <option value="INFO">INFO</option>
-          <option value="WARN">WARN</option>
-          <option value="ERROR">ERROR</option>
-        </select>
-
-        <select
-          value={prediction}
-          onChange={(e) => setPrediction(e.target.value)}
-        >
-          <option value="">All Predictions</option>
-          <option value="normal">Normal</option>
-          <option value="anomaly">Anomaly</option>
-        </select>
-
-        <input
-          type="text"
-          placeholder="Search message..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <button onClick={fetchLogs}>Refresh</button>
-      </div>
-
-      {/* Log Table */}
-      <table border="1" cellPadding="8" style={{ width: "100%" }}>
-        <thead>
-          <tr>
-            <th>Timestamp</th>
-            <th>Level</th>
-            <th>Message</th>
-            <th>Prediction</th>
-          </tr>
-        </thead>
-        <tbody>
-          {logs.map((log, idx) => (
-            <tr key={idx}>
-              <td>{new Date(log.timestamp).toLocaleString()}</td>
-              <td>{log.level}</td>
-              <td>{log.message}</td>
-              <td>
-                <span
-                  style={{
-                    padding: "4px 8px",
-                    borderRadius: "6px",
-                    color: "white",
-                    backgroundColor:
-                      log.prediction === "anomaly" ? "red" : "green",
-                  }}
-                >
-                  {log.prediction}
-                </span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {logs.length === 0 && <p>No logs found.</p>}
     </div>
   );
 }
