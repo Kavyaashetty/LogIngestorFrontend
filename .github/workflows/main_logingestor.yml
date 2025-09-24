@@ -1,4 +1,4 @@
-name: Build and deploy React app to Azure Web App - LogIngestorFrontend
+name: Build and deploy Vite React app to Azure Web App - LogIngestorFrontend
 
 on:
   push:
@@ -23,14 +23,14 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build React app
+      - name: Build Vite React app
         run: npm run build
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: react-build
-          path: build
+          name: react-dist
+          path: dist
 
   deploy:
     runs-on: ubuntu-latest
@@ -40,11 +40,11 @@ jobs:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: react-build
+          name: react-dist
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'LogIngestorFrontend'   # your frontend app name in Azure
-          package: build
+          app-name: 'LogIngestorFrontend'   # replace with your frontend Azure app name
+          package: dist
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
